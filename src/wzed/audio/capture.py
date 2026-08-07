@@ -1,4 +1,4 @@
-"""Captura de microfone: WASAPI compartilhado (nunca exclusivo), ring buffer, PTT."""
+"""Microphone capture: shared WASAPI (never exclusive), ring buffer, PTT."""
 
 from __future__ import annotations
 
@@ -12,16 +12,16 @@ import sounddevice as sd
 log = logging.getLogger(__name__)
 
 
-_SILENCE_PEAK = 1e-3  # abaixo disto não é sala silenciosa, é ausência de sinal
+_SILENCE_PEAK = 1e-3  # below this it's not a quiet room, it's absence of signal
 
 
 def _resolve_device(device: str | int | None) -> int | None:
-    """Resolve o dispositivo de entrada para um ÍNDICE estável.
+    """Resolve the input device to a stable INDEX.
 
-    device None/"" → índice do mic default do sistema (evita o erro
-    "Multiple input devices found for ''" quando há vários mics).
-    device str → casa por nome (primeiro que contém a substring).
-    device int → usado como está.
+    device None/"" → index of the system default mic (avoids the
+    "Multiple input devices found for ''" error when there are several mics).
+    device str → matches by name (first one containing the substring).
+    device int → used as is.
     """
     if isinstance(device, int):
         return device
@@ -29,7 +29,7 @@ def _resolve_device(device: str | int | None) -> int | None:
         default_in = sd.default.device[0]
         if isinstance(default_in, int) and default_in >= 0:
             return default_in
-        # sem default explícito: primeiro dispositivo com canais de entrada
+        # no explicit default: first device with input channels
         for idx, info in enumerate(sd.query_devices()):
             if info["max_input_channels"] > 0:
                 return idx
@@ -43,10 +43,10 @@ def _resolve_device(device: str | int | None) -> int | None:
 
 
 class Recorder:
-    """Grava enquanto `start()` estiver ativo; `stop()` devolve o utterance inteiro.
+    """Records while `start()` is active; `stop()` returns the whole utterance.
 
-    Modelo simples para PTT (Fase 1). O modo contínuo (VAD) entra na Fase 2
-    consumindo os mesmos blocos via callback.
+    Simple model for PTT (Phase 1). Continuous mode (VAD) comes in Phase 2
+    consuming the same blocks via callback.
     """
 
     def __init__(
@@ -59,7 +59,7 @@ class Recorder:
         self.sample_rate = sample_rate
         self.device = _resolve_device(device)
         self.max_samples = sample_rate * max_s
-        # recebe o RMS de cada bloco (30 ms) para alimentar o HUD; não pode lançar
+        # receives the RMS of each block (30 ms) to feed the HUD; must not raise
         self.level_callback = level_callback
         self._chunks: list[np.ndarray] = []
         self._lock = threading.Lock()
@@ -74,7 +74,7 @@ class Recorder:
         if self.level_callback is not None:
             try:
                 self.level_callback(float(np.sqrt(np.mean(block**2))))
-            except Exception:  # noqa: BLE001 - HUD nunca derruba a captura
+            except Exception:  # noqa: BLE001 - HUD never brings down the capture
                 pass
 
     def start(self) -> None:
@@ -86,7 +86,7 @@ class Recorder:
             samplerate=self.sample_rate,
             channels=1,
             dtype="float32",
-            blocksize=int(self.sample_rate * 0.03),  # blocos de 30 ms
+            blocksize=int(self.sample_rate * 0.03),  # 30 ms blocks
             device=self.device,
             callback=self._callback,
         )
@@ -111,13 +111,13 @@ class Recorder:
         return audio
 
     def _warn_if_silent(self, audio: np.ndarray) -> None:
-        """Avisa quando o mic abre mas não entrega sinal.
+        """Warns when the mic opens but delivers no signal.
 
-        É a falha mais traiçoeira do wzed: o device abre, o PTT dispara, a engine roda
-        e nada aparece, sem uma linha de erro. Acontece com o mic no mudo, com volume
-        zerado ou tomado em modo exclusivo por outro app (o DaVinci Resolve faz isso).
-        Um mic vivo em sala silenciosa ainda registra ruído de fundo na casa de 1e-3;
-        abaixo de _SILENCE_PEAK é silêncio digital, ou seja, não está chegando áudio.
+        It's the most treacherous failure in wzed: the device opens, the PTT fires, the engine runs
+        and nothing shows up, without a single line of error. It happens with the mic muted, with volume
+        at zero or taken in exclusive mode by another app (DaVinci Resolve does this).
+        A live mic in a quiet room still registers background noise on the order of 1e-3;
+        below _SILENCE_PEAK it's digital silence, meaning no audio is arriving.
         """
         if audio.size < int(0.3 * self.sample_rate):
             return
@@ -136,7 +136,7 @@ class Recorder:
 
     @staticmethod
     def check_device(device: str | None, sample_rate: int) -> str:
-        """Valida o mic e detecta a armadilha do Bluetooth handsfree (8/16 kHz nativo)."""
+        """Validates the mic and detects the Bluetooth handsfree trap (8/16 kHz native)."""
         idx = _resolve_device(device)
         if idx is None:
             return "AVISO: nenhum dispositivo de entrada encontrado"

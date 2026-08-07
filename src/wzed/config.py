@@ -1,4 +1,4 @@
-"""Configuração do wzed: TOML em %APPDATA%\\wzed\\config.toml, validada por pydantic."""
+"""wzed configuration: TOML at %APPDATA%\\wzed\\config.toml, validated by pydantic."""
 
 from __future__ import annotations
 
@@ -14,20 +14,20 @@ DB_PATH = APP_DIR / "history.db"
 
 
 class HotkeysCfg(BaseModel):
-    push_to_talk: str = "<ctrl>+<win>"  # segurar = gravar; soltar = transcrever
+    push_to_talk: str = "<ctrl>+<win>"  # hold = record; release = transcribe
     toggle_continuous: str = "<ctrl>+<alt>+d"
 
 
 class SttCfg(BaseModel):
-    engine: str = "fwhisper"  # fwhisper | parakeet (fwhisper trava o idioma; parakeet auto-detecta e ignora `language`)
+    engine: str = "fwhisper"  # fwhisper | parakeet (fwhisper locks the language; parakeet auto-detects and ignores `language`)
     device: str = "cuda"  # cuda | cpu
-    language: str = "pt"  # pt | en (detecção automática é Fase 3)
+    language: str = "pt"  # pt | en (automatic detection is Phase 3)
 
 
 class InjectCfg(BaseModel):
     default_strategy: str = "clipboard"  # clipboard | sendinput
     restore_clipboard_delay_ms: int = 400
-    # perfis por executável (nome do processo em minúsculas)
+    # profiles per executable (lowercase process name)
     per_app: dict[str, str] = Field(
         default_factory=lambda: {
             "windowsterminal.exe": "sendinput",
@@ -38,15 +38,15 @@ class InjectCfg(BaseModel):
 
 class AudioCfg(BaseModel):
     sample_rate: int = 16000
-    device: str | None = None  # None = padrão do sistema
-    vad_silence_ms: int = 300  # janela de fim-de-fala no modo contínuo
+    device: str | None = None  # None = system default
+    vad_silence_ms: int = 300  # end-of-speech window in continuous mode
     max_utterance_s: int = 60
 
     @field_validator("device", mode="before")
     @classmethod
     def _empty_to_none(cls, v: object) -> object:
-        # TOML não tem null: None é salvo como "" e precisa voltar a None no load,
-        # senão sounddevice trata "" como filtro de nome e casa vários mics.
+        # TOML has no null: None is saved as "" and must return to None on load,
+        # otherwise sounddevice treats "" as a name filter and matches several mics.
         return None if v in ("", None) else v
 
 
@@ -55,8 +55,8 @@ class Config(BaseModel):
     stt: SttCfg = Field(default_factory=SttCfg)
     inject: InjectCfg = Field(default_factory=InjectCfg)
     audio: AudioCfg = Field(default_factory=AudioCfg)
-    improved_mode: bool = False  # modo "texto melhorado por IA" (Fase 2)
-    show_hud: bool = True  # barra de gravação com waveform na base da tela
+    improved_mode: bool = False  # "AI-improved text" mode (Phase 2)
+    show_hud: bool = True  # recording bar with waveform at the bottom of the screen
 
 
 def load() -> Config:
@@ -70,7 +70,7 @@ def load() -> Config:
 
 
 def save(cfg: Config) -> None:
-    """Serialização TOML mínima (2 níveis, tipos simples), suficiente p/ o config."""
+    """Minimal TOML serialization (2 levels, simple types), enough for the config."""
     APP_DIR.mkdir(parents=True, exist_ok=True)
     lines: list[str] = []
     data = cfg.model_dump()

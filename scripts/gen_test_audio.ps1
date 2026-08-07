@@ -1,8 +1,8 @@
-# Gera o dataset de audio de teste (WAV 16 kHz mono) via SAPI local.
-# Vozes: Microsoft Maria/Daniel (pt-BR), Zira/David (en-US). Sem voz pt-PT instalada.
-# Saida: bench\audio\*.wav + bench\refs.json
-# NOTA: voz sintetica valida o PIPELINE; o A/B real de sotaque exige a voz do Ricardo
-#       (gravar com scripts\record_test_audio.py).
+# Generates the test audio dataset (WAV 16 kHz mono) via local SAPI.
+# Voices: Microsoft Maria/Daniel (pt-BR), Zira/David (en-US). No pt-PT voice installed.
+# Output: bench\audio\*.wav + bench\refs.json
+# NOTE: the synthetic voice validates the PIPELINE; the real accent A/B requires Ricardo's voice
+#       (record with scripts\record_test_audio.py).
 
 Add-Type -AssemblyName System.Speech
 
@@ -29,10 +29,10 @@ $refs = @{}
 $synth = New-Object System.Speech.Synthesis.SpeechSynthesizer
 $fmt = New-Object System.Speech.AudioFormat.SpeechAudioFormatInfo(16000, [System.Speech.AudioFormat.AudioBitsPerSample]::Sixteen, [System.Speech.AudioFormat.AudioChannel]::Mono)
 
-# System.Speech só seleciona as vozes "Desktop" (as OneCore aparecem mas lançam exceção)
+# System.Speech only selects the "Desktop" voices (the OneCore ones show up but throw an exception)
 $desktopMap = @{
     "Microsoft Maria"  = "Microsoft Maria Desktop"
-    "Microsoft Daniel" = "Microsoft Maria Desktop"   # sem Daniel Desktop; Maria cobre pt-BR
+    "Microsoft Daniel" = "Microsoft Maria Desktop"   # no Daniel Desktop; Maria covers pt-BR
     "Microsoft Zira"   = "Microsoft Zira Desktop"
     "Microsoft David"  = "Microsoft David Desktop"
 }

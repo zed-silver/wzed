@@ -1,4 +1,4 @@
-"""Engines STT com interface única: Parakeet (padrão) e faster-whisper (fallback)."""
+"""STT engines with a single interface: Parakeet (default) and faster-whisper (fallback)."""
 
 from __future__ import annotations
 
@@ -14,7 +14,7 @@ log = logging.getLogger(__name__)
 
 
 def setup_cuda_dlls() -> None:
-    """Expõe as DLLs dos pacotes pip nvidia-* e usa o preload do onnxruntime (Windows)."""
+    """Exposes the DLLs from the nvidia-* pip packages and uses onnxruntime's preload (Windows)."""
     spec = importlib.util.find_spec("nvidia")
     if spec and spec.submodule_search_locations:
         for loc in spec.submodule_search_locations:
@@ -26,18 +26,18 @@ def setup_cuda_dlls() -> None:
         import onnxruntime as ort
 
         ort.preload_dlls()
-    except Exception:  # noqa: BLE001 - preload é otimização, não requisito
+    except Exception:  # noqa: BLE001 - preload is an optimization, not a requirement
         pass
 
 
 class SttEngine(Protocol):
     def transcribe(self, audio: np.ndarray, language: str) -> str:
-        """audio: float32 mono 16 kHz em [-1, 1] → texto (com pontuação)."""
+        """audio: float32 mono 16 kHz in [-1, 1] → text (with punctuation)."""
         ...
 
 
 class ParakeetEngine:
-    """NVIDIA Parakeet-TDT-0.6B-v3 via onnx-asr. Pontuação/capitalização nativas."""
+    """NVIDIA Parakeet-TDT-0.6B-v3 via onnx-asr. Native punctuation/capitalization."""
 
     def __init__(self, device: str = "cuda") -> None:
         import onnx_asr
@@ -59,7 +59,7 @@ class ParakeetEngine:
 
 
 class FasterWhisperEngine:
-    """faster-whisper large-v3-turbo int8 (fallback; PT-BR robusto)."""
+    """faster-whisper large-v3-turbo int8 (fallback; robust PT-BR)."""
 
     def __init__(self, device: str = "cuda") -> None:
         from faster_whisper import WhisperModel

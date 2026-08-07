@@ -1,4 +1,4 @@
-"""Histórico de transcrições: SQLite + FTS5, pesquisável."""
+"""Transcription history: SQLite + FTS5, searchable."""
 
 from __future__ import annotations
 

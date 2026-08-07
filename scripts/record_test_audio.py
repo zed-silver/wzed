@@ -1,13 +1,13 @@
-"""Grava as 15 frases de referência com a voz REAL do Ricardo (pt-BR) para o A/B do motor.
+"""Records the 15 reference sentences in Ricardo's REAL voice (pt-BR) for the engine A/B.
 
-O bench sintético (SAPI) valida o pipeline, não o sotaque. O Parakeet é treinado em
-PT europeu: este dataset é o gate que decide o motor definitivo.
+The synthetic bench (SAPI) validates the pipeline, not the accent. Parakeet is trained on
+European Portuguese: this dataset is the gate that decides the final engine.
 
-Uso (terminal interativo, NÃO pelo Claude):
+Usage (interactive terminal, NOT via Claude):
     cd E:\\dev\\wzed
     uv run python scripts/record_test_audio.py
 
-Saída: bench/audio_real/*.wav (16 kHz mono) + bench/refs_real.json
+Output: bench/audio_real/*.wav (16 kHz mono) + bench/refs_real.json
 """
 
 from __future__ import annotations
@@ -29,9 +29,9 @@ SR = 16000
 OUT_DIR = Path(__file__).parent.parent / "bench" / "audio_real"
 REFS = Path(__file__).parent.parent / "bench" / "refs_real.json"
 
-# 15 frases que estressam o risco real: sotaque pt-BR contra modelo treinado em pt-PT.
+# 15 sentences that stress the real risk: pt-BR accent against a model trained on pt-PT.
 FRASES: list[tuple[str, str, str]] = [
-    # (id, categoria, texto)
+    # (id, category, text)
     ("r01", "corriqueira", "Bom dia, tudo bem? Vou revisar o documento e te mando ainda hoje."),
     ("r02", "corriqueira", "Preciso terminar essa tarefa antes do fim da tarde."),
     ("r03", "corriqueira", "Me lembra de ligar para o contador na segunda-feira."),
@@ -84,7 +84,7 @@ def _record(idx: int) -> np.ndarray:
 
     with sd.InputStream(samplerate=SR, channels=1, dtype="float32", device=idx, callback=cb):
         print("   ● GRAVANDO... fale a frase e pressione ENTER para parar")
-        # feedback de nível enquanto o usuário fala
+        # level feedback while the user speaks
         import threading
 
         parar = threading.Event()
@@ -119,7 +119,7 @@ def main() -> None:
     print("=" * 74)
 
     refs: dict[str, dict] = {}
-    if REFS.exists():  # retomada: mantém o que já foi gravado
+    if REFS.exists():  # resume: keep what has already been recorded
         refs = json.loads(REFS.read_text(encoding="utf-8-sig"))
         if refs:
             print(f"\n  (retomando: {len(refs)} frases já gravadas)\n")

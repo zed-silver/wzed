@@ -1,4 +1,4 @@
-"""Testes de unidade dos módulos sem hardware: config, rules, history, hotkey parse."""
+"""Unit tests for the hardware-free modules: config, rules, history, hotkey parse."""
 
 import sys
 from pathlib import Path
@@ -13,7 +13,7 @@ def test_config_roundtrip(tmp_path, monkeypatch):
 
     monkeypatch.setattr(cfg_mod, "APP_DIR", tmp_path)
     monkeypatch.setattr(cfg_mod, "CONFIG_PATH", tmp_path / "config.toml")
-    cfg = cfg_mod.load()  # cria default
+    cfg = cfg_mod.load()  # creates default
     assert cfg.stt.engine == "fwhisper"
     cfg.stt.engine = "parakeet"
     cfg_mod.save(cfg)
@@ -23,8 +23,8 @@ def test_config_roundtrip(tmp_path, monkeypatch):
 
 
 def test_audio_device_none_roundtrip(tmp_path, monkeypatch):
-    """Regressão: device None é salvo como '' no TOML e DEVE voltar a None no load,
-    senão sounddevice casa múltiplos mics e o app crasha no boot."""
+    """Regression: device None is saved as '' in the TOML and MUST come back as None on load,
+    otherwise sounddevice matches multiple mics and the app crashes on boot."""
     from wzed import config as cfg_mod
 
     monkeypatch.setattr(cfg_mod, "APP_DIR", tmp_path)
@@ -32,7 +32,7 @@ def test_audio_device_none_roundtrip(tmp_path, monkeypatch):
     cfg = cfg_mod.load()
     assert cfg.audio.device is None
     cfg_mod.save(cfg)
-    assert cfg_mod.load().audio.device is None  # não pode virar ""
+    assert cfg_mod.load().audio.device is None  # must not become ""
 
 
 def test_rules_hesitacao_e_dicionario(tmp_path, monkeypatch):
@@ -71,13 +71,13 @@ def test_hotkey_parse():
 
 
 def test_single_instance_lock(monkeypatch):
-    """Regressão: sem a trava, autostart + clique no Menu Iniciar sobem 2 instâncias
-    e cada uma injeta o texto (tudo sai duplicado)."""
+    """Regression: without the lock, autostart + a Start Menu click bring up 2 instances
+    and each one injects the text (everything comes out duplicated)."""
     from wzed import app as app_mod
 
     monkeypatch.setattr(app_mod, "_MUTEX_NAME", "Local\\wzed-test-mutex-xyz")
-    assert app_mod._acquire_single_instance() is True  # primeira: adquire
-    assert app_mod._acquire_single_instance() is False  # segunda: recusa
+    assert app_mod._acquire_single_instance() is True  # first: acquires
+    assert app_mod._acquire_single_instance() is False  # second: refuses
 
 
 def test_injector_strategy_por_app(monkeypatch):

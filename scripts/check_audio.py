@@ -1,6 +1,6 @@
-"""Verifica o fix do device de áudio: config roundtrip + abertura real do mic.
+"""Verifies the audio device fix: config roundtrip + real mic open.
 
-Não sobe o app (não arma o hook de PTT). Uso: uv run python scripts/check_audio.py
+Does not bring up the app (does not arm the PTT hook). Usage: uv run python scripts/check_audio.py
 """
 
 from __future__ import annotations
@@ -25,7 +25,7 @@ idx = _resolve_device(cfg.audio.device)
 print(f"device resolvido = índice {idx}")
 print(Recorder.check_device(cfg.audio.device, cfg.audio.sample_rate))
 
-# grava 1 s de verdade para provar que o stream abre sem o ValueError
+# actually record 1 s to prove the stream opens without the ValueError
 rec = Recorder(cfg.audio.sample_rate, cfg.audio.device, cfg.audio.max_utterance_s)
 rec.start()
 time.sleep(1.0)

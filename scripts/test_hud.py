@@ -1,6 +1,6 @@
-"""Valida o HUD sem precisar de teclado: não rouba foco, não recebe clique, e desenha.
+"""Validates the HUD without needing a keyboard: it does not steal focus, receive clicks, and it draws.
 
-Gera prévias em bench/hud_*.png. Uso: uv run python scripts/test_hud.py
+Generates previews in bench/hud_*.png. Usage: uv run python scripts/test_hud.py
 """
 
 from __future__ import annotations
@@ -25,7 +25,7 @@ def main() -> None:
     fg_antes = win32gui.GetForegroundWindow()
 
     hud = RecordingHud()
-    hud.set_state("recording")  # mesma thread → conexão direta, aplica na hora
+    hud.set_state("recording")  # same thread → direct connection, applies immediately
     app.processEvents()
 
     hwnd = int(hud.winId())
@@ -48,12 +48,12 @@ def main() -> None:
         and bool(ex & win32con.WS_EX_TRANSPARENT)
     )
 
-    # prévia "gravando": simula fala (envelope senoidal + variação)
+    # "recording" preview: simulates speech (sinusoidal envelope + variation)
     OUT.mkdir(exist_ok=True)
     for frame in range(60):
         t = frame / 60
         fake_rms = 0.02 + 0.16 * abs(math.sin(t * 7)) * (0.5 + 0.5 * math.sin(t * 23))
-        hud._on_level(fake_rms)  # direto: evita depender do event loop
+        hud._on_level(fake_rms)  # direct: avoids depending on the event loop
         hud._tick()
         app.processEvents()
     hud.grab().save(str(OUT / "hud_recording.png"))

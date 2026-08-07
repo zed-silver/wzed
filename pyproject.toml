@@ -26,9 +26,9 @@ dependencies = [
 [project.optional-dependencies]
 api = ["fastapi>=0.110", "uvicorn>=0.29"]
 
-# Sem console-scripts/gui-scripts de propósito: os .exe que o pip gera são NÃO
-# ASSINADOS e o Norton os bloqueia por reputação. Rodamos via o pythonw.exe do venv
-# (assinado pela PSF) com `-m wzed` (ver src/wzed/__main__.py e scripts/install.ps1).
+# No console-scripts/gui-scripts on purpose: the .exe files pip generates are
+# UNSIGNED and Norton blocks them on reputation. We run via the venv's pythonw.exe
+# (signed by the PSF) with `-m wzed` (see src/wzed/__main__.py and scripts/install.ps1).
 
 [build-system]
 requires = ["hatchling"]
@@ -37,9 +37,9 @@ build-backend = "hatchling.build"
 [tool.hatch.build.targets.wheel]
 packages = ["src/wzed"]
 
-# Grupo dev: o `uv sync` instala por padrão, então pytest nunca some do venv
-# (um `uv sync --extra api` sem `--extra dev` removia o pytest e os testes
-# passavam a rodar num ambiente isolado, sem as deps do projeto).
+# dev group: `uv sync` installs it by default, so pytest never disappears from the venv
+# (a `uv sync --extra api` without `--extra dev` used to remove pytest and the tests
+# then ran in an isolated environment, without the project's deps).
 [dependency-groups]
 dev = [
     "pillow>=12.3.0",

@@ -1,6 +1,6 @@
-"""wzed: orquestrador + tray. Fase 1: PTT global → STT → regras → injeção → histórico.
+"""wzed: orchestrator + tray. Phase 1: global PTT → STT → rules → injection → history.
 
-Rodar: uv run python -m wzed
+Run: uv run python -m wzed
 """
 
 from __future__ import annotations
@@ -38,25 +38,25 @@ _PTT_VKS = (
 
 
 _MUTEX_NAME = "Local\\wzed-single-instance"
-_mutex_handle = None  # mantido vivo pelo processo inteiro; o Windows libera ao sair
+_mutex_handle = None  # kept alive for the whole process; Windows releases it on exit
 
 
 def _acquire_single_instance() -> bool:
-    """Impede uma segunda instância (autostart + clique no Menu Iniciar = tudo duplicado).
+    """Prevent a second instance (autostart + Start Menu click = everything duplicated).
 
-    Sem isso, cada instância instala seu hook, grava e injeta: o texto sai duas vezes.
+    Without this, each instance installs its own hook, records and injects: the text comes out twice.
     """
     global _mutex_handle
     try:
         _mutex_handle = win32event.CreateMutex(None, False, _MUTEX_NAME)
         return win32api.GetLastError() != winerror.ERROR_ALREADY_EXISTS
-    except Exception:  # noqa: BLE001 - falha do mutex não deve impedir o app de rodar
+    except Exception:  # noqa: BLE001 - a mutex failure must not stop the app from running
         log.warning("não foi possível criar o mutex de instância única", exc_info=True)
         return True
 
 
 def _wait_modifiers_released(timeout_s: float = 1.5) -> None:
-    """Não injetar com Ctrl/Alt/Win físicos ainda pressionados (viraria atalho no app alvo)."""
+    """Do not inject while physical Ctrl/Alt/Win are still held (it would trigger a shortcut in the target app)."""
     deadline = time.time() + timeout_s
     while time.time() < deadline:
         if not any(win32api.GetAsyncKeyState(vk) & 0x8000 for vk in _PTT_VKS):
@@ -77,20 +77,20 @@ def _icon(color: str) -> QIcon:
 
 
 class _UiBridge(QObject):
-    """Ponte thread-safe: o PTT roda em thread própria e o Qt só aceita updates de
-    widgets na thread da GUI. O signal cruza para lá (conexão enfileirada)."""
+    """Thread-safe bridge: the PTT runs on its own thread and Qt only accepts widget
+    updates on the GUI thread. The signal crosses over to it (queued connection)."""
 
     state = Signal(str)
 
 
-# estado interno -> estado do HUD
+# internal state -> HUD state
 _HUD_STATE = {"rec": "recording", "busy": "processing", "idle": "idle"}
 
 
 class WzedApp:
     def __init__(self) -> None:
         self.cfg = cfg_mod.load()
-        # QApplication antes de qualquer QWidget (o HUD é um)
+        # QApplication before any QWidget (the HUD is one)
         self.qt = QApplication(sys.argv)
         self.qt.setQuitOnLastWindowClosed(False)
         self.hud = RecordingHud() if self.cfg.show_hud else None
@@ -141,7 +141,7 @@ class WzedApp:
         log.info("PTT: segure %s para ditar", self.cfg.hotkeys.push_to_talk)
 
     def _set_state(self, state: str) -> None:
-        """Chamável de qualquer thread; o signal entrega na thread da GUI."""
+        """Callable from any thread; the signal delivers on the GUI thread."""
         self._ui.state.emit(state)
 
     def _apply_state(self, state: str) -> None:
@@ -160,7 +160,7 @@ class WzedApp:
         try:
             audio = self.recorder.stop()
             self._set_state("busy")
-            if len(audio) < self.cfg.audio.sample_rate * 0.3:  # < 300 ms: ruído de clique
+            if len(audio) < self.cfg.audio.sample_rate * 0.3:  # < 300 ms: click noise
                 self._set_state("idle")
                 return
             t0 = time.perf_counter()
@@ -169,7 +169,7 @@ class WzedApp:
             latency_ms = (time.perf_counter() - t0) * 1000
             app_name = active_process_name()
             if final:
-                self._set_state("idle")  # some o HUD ANTES de digitar no app
+                self._set_state("idle")  # hide the HUD BEFORE typing into the app
                 _wait_modifiers_released()
                 tecnica = self.injector.inject(final)
                 self.history.add(raw, final, app_name, self.cfg.stt.language, latency_ms)
@@ -188,8 +188,8 @@ class WzedApp:
 
 
 def _setup_logging() -> None:
-    """Loga em %APPDATA%\\wzed\\wzed.log (rodando como .exe sem console não há stderr)
-    e também no console quando houver."""
+    """Logs to %APPDATA%\\wzed\\wzed.log (running as an .exe without a console there is no stderr)
+    and also to the console when one is present."""
     from logging.handlers import RotatingFileHandler
 
     from wzed.config import APP_DIR
@@ -203,7 +203,7 @@ def _setup_logging() -> None:
     )
     fileh.setFormatter(fmt)
     root.addHandler(fileh)
-    if sys.stderr:  # há console (execução via terminal)
+    if sys.stderr:  # a console is present (launched from a terminal)
         con = logging.StreamHandler()
         con.setFormatter(fmt)
         root.addHandler(con)

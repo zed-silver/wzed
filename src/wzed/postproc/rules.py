@@ -1,8 +1,8 @@
-"""Pós-processamento determinístico (sem LLM): dicionário pessoal e limpeza leve.
+"""Deterministic post-processing (no LLM): personal dictionary and light cleanup.
 
-O dicionário vive em %APPDATA%\\wzed\\dictionary.txt, uma linha por regra:
-    errado -> certo        (substituição, case-insensitive, por palavra)
-    TermoExato             (proteção: força a grafia exata quando o STT acertar foneticamente)
+The dictionary lives at %APPDATA%\\wzed\\dictionary.txt, one rule per line:
+    wrong -> right         (substitution, case-insensitive, per word)
+    ExactTerm              (protection: forces the exact spelling when the STT gets it phonetically right)
 """
 
 from __future__ import annotations
@@ -14,7 +14,7 @@ from wzed.config import APP_DIR
 
 DICT_PATH = APP_DIR / "dictionary.txt"
 
-# hesitações comuns pt/en no INÍCIO de frase (remoção conservadora; o resto é papel do LLM)
+# common pt/en hesitations at the START of a sentence (conservative removal; the rest is the LLM's job)
 _HESITACAO = re.compile(
     r"^(?:hum+|uh+m*|ah+n?|é+h?|eh+|hm+m*)[,.\s]+", re.IGNORECASE
 )
@@ -53,7 +53,7 @@ class Rules:
             text = pat.sub(right, text)
         for pat, exact in self._protected:
             text = pat.sub(exact, text)
-        # espaço duplicado e espaço antes de pontuação (sobras de substituição)
+        # doubled spaces and space before punctuation (leftovers from substitution)
         text = re.sub(r"\s{2,}", " ", text)
         text = re.sub(r"\s+([,.;:!?])", r"\1", text)
         return text.strip()

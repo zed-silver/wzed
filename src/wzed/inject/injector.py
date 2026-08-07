@@ -1,8 +1,8 @@
-"""Injeção de texto no campo ativo: cadeia de fallback por app.
+"""Text injection into the active field: per-app fallback chain.
 
-Padrão: clipboard + Ctrl+V com restauração retardada e verificada.
-Alternativa: SendInput KEYEVENTF_UNICODE (terminais que quebram com paste).
-UI Automation fica de fora do caminho de escrita (read-only por design).
+Default: clipboard + Ctrl+V with a delayed, verified restore.
+Alternative: SendInput KEYEVENTF_UNICODE (for terminals that break on paste).
+UI Automation stays out of the write path (read-only by design).
 """
 
 from __future__ import annotations
@@ -36,7 +36,7 @@ class KEYBDINPUT(ctypes.Structure):
 
 
 class MOUSEINPUT(ctypes.Structure):
-    """Membro maior da união INPUT; sem ele o cbSize sai errado em x64 e SendInput retorna 0."""
+    """Largest member of the INPUT union; without it cbSize is wrong on x64 and SendInput returns 0."""
 
     _fields_ = [
         ("dx", wintypes.LONG),
@@ -57,7 +57,7 @@ class INPUT(ctypes.Structure):
 
 
 def active_process_name() -> str:
-    """Nome do executável da janela em foco (minúsculas), p/ o perfil por app."""
+    """Executable name of the foreground window (lowercase), for the per-app profile."""
     try:
         hwnd = win32gui.GetForegroundWindow()
         _, pid = win32process.GetWindowThreadProcessId(hwnd)
@@ -69,7 +69,7 @@ def active_process_name() -> str:
         finally:
             win32api.CloseHandle(handle)
         return path.rsplit("\\", 1)[-1].lower()
-    except Exception:  # janela elevada (UIPI) ou protegida
+    except Exception:  # elevated (UIPI) or protected window
         return ""
 
 
@@ -89,14 +89,14 @@ def _key(vk: int, up: bool = False) -> INPUT:
 def send_unicode(text: str) -> None:
     inputs: list[INPUT] = []
     for ch in text:
-        if ch == "\n":  # newline vira Enter (funciona em qualquer campo)
+        if ch == "\n":  # newline becomes Enter (works in any field)
             inputs += [_key(win32con.VK_RETURN), _key(win32con.VK_RETURN, up=True)]
             continue
         for flags in (KEYEVENTF_UNICODE, KEYEVENTF_UNICODE | KEYEVENTF_KEYUP):
             inp = INPUT(type=INPUT_KEYBOARD)
             inp.u.ki = KEYBDINPUT(0, ord(ch), flags, 0, 0)
             inputs.append(inp)
-    # lotes de 200 eventos para não estourar a fila de input de apps lentos
+    # batches of 200 events so we don't overflow the input queue of slow apps
     for i in range(0, len(inputs), 200):
         _send_inputs(inputs[i : i + 200])
         time.sleep(0.005)
@@ -107,7 +107,7 @@ def send_combo(*vks: int) -> None:
 
 
 def _clip_get() -> str | None:
-    for _ in range(5):  # clipboard pode estar lockado por outro app
+    for _ in range(5):  # the clipboard may be locked by another app
         try:
             win32clipboard.OpenClipboard()
             try:
@@ -141,7 +141,7 @@ class Injector:
         self.cfg = cfg
 
     def inject(self, text: str) -> str:
-        """Injeta no campo ativo; retorna a técnica usada (p/ histórico/depuração)."""
+        """Injects into the active field; returns the technique used (for history/debugging)."""
         if not text:
             return "noop"
         app = active_process_name()
@@ -167,8 +167,8 @@ class Injector:
             else (win32con.VK_CONTROL, ord("V"))
         )
         send_combo(*paste_combo)
-        # restauração retardada: a race documentada (Outlook/Teams leem tarde).
-        # Verificação: só restaura se o clipboard ainda contém NOSSO texto.
+        # delayed restore: the documented race (Outlook/Teams read late).
+        # Verification: only restore if the clipboard still holds OUR text.
         time.sleep(self.cfg.restore_clipboard_delay_ms / 1000)
         if original is not None and _clip_get() == text:
             _clip_set(original)

@@ -1,4 +1,4 @@
-"""Hotkeys globais via pynput (WH_KEYBOARD_LL): PTT com key-down/key-up real."""
+"""Global hotkeys via pynput (WH_KEYBOARD_LL): PTT with real key-down/key-up."""
 
 from __future__ import annotations
 
@@ -32,7 +32,7 @@ _VK_MAP = {
 
 
 def _parse(combo: str) -> list[set]:
-    """"<ctrl>+<alt>" → [ {variantes de ctrl}, {variantes de alt} ]."""
+    """"<ctrl>+<alt>" → [ {ctrl variants}, {alt variants} ]."""
     groups: list[set] = []
     for part in combo.lower().split("+"):
         part = part.strip()
@@ -46,9 +46,9 @@ def _parse(combo: str) -> list[set]:
 
 
 class HotkeyManager:
-    """PTT: on_press quando o combo fecha, on_release quando qualquer tecla dele solta.
+    """PTT: on_press when the combo closes, on_release when any of its keys is released.
 
-    Toggle: dispara callback a cada fechamento do combo.
+    Toggle: fires the callback on every closing of the combo.
     """
 
     def __init__(self) -> None:
@@ -66,9 +66,9 @@ class HotkeyManager:
         self._ptt_groups = _parse(combo)
         self._on_ptt_down = on_down
         self._on_ptt_up = on_up
-        # Se a tecla Win faz parte do PTT, é preciso suprimi-la do sistema para o
-        # menu Iniciar não abrir ao soltar. Quando suprimida, o handler normal não a
-        # vê, então o próprio filtro alimenta o estado (ver _win32_filter).
+        # If the Win key is part of the PTT, it must be suppressed system-wide so the
+        # Start menu doesn't open on release. When suppressed, the normal handler doesn't
+        # see it, so the filter itself feeds the state (see _win32_filter).
         self._suppress_win = any(keyboard.Key.cmd in g for g in self._ptt_groups)
 
     def bind_toggle(self, combo: str, callback: Callable[[], None]) -> None:
@@ -78,7 +78,7 @@ class HotkeyManager:
         return all(bool(g & self._pressed) for g in groups)
 
     def _normalize(self, key):  # noqa: ANN001
-        # KeyCode com char: normaliza p/ minúscula (shift/caps não quebram o combo)
+        # KeyCode with a char: normalize to lowercase (shift/caps don't break the combo)
         if isinstance(key, keyboard.KeyCode) and key.char:
             return keyboard.KeyCode.from_char(key.char.lower())
         return key
@@ -109,10 +109,10 @@ class HotkeyManager:
                     threading.Thread(target=self._on_ptt_up, daemon=True).start()
 
     def _win32_filter(self, msg, data) -> None:  # noqa: ANN001
-        """Suprime a tecla Win do sistema durante o PTT (evita abrir o menu Iniciar).
+        """Suppresses the system Win key during the PTT (prevents opening the Start menu).
 
-        Como a supressão esconde o evento dos handlers on_press/on_release, o próprio
-        filtro processa a tecla Win aqui para o combo continuar fechando.
+        Since suppression hides the event from the on_press/on_release handlers, the
+        filter itself processes the Win key here so the combo keeps closing.
         """
         if not self._suppress_win:
             return
@@ -120,14 +120,14 @@ class HotkeyManager:
             if data.vkCode not in (_VK_LWIN, _VK_RWIN):
                 return
             if not (_ctrl_down() or self._ptt_active):
-                return  # Win sem Ctrl e fora do PTT: deixa passar (Win+E, Iniciar, etc.)
+                return  # Win without Ctrl and outside the PTT: let it through (Win+E, Start, etc.)
             if msg in _WM_KEYDOWN:
                 self._on_press(keyboard.Key.cmd)
             elif msg in _WM_KEYUP:
                 self._on_release(keyboard.Key.cmd)
             if self._listener is not None:
                 self._listener.suppress_event()
-        except Exception:  # noqa: BLE001 - um filtro que lança mataria o hook
+        except Exception:  # noqa: BLE001 - a filter that raises would kill the hook
             log.debug("win32_filter falhou", exc_info=True)
 
     def start(self) -> None:

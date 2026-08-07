@@ -1,10 +1,10 @@
-"""HUD de gravação: pílula na base da tela com waveform reativa ao microfone.
+"""Recording HUD: pill at the bottom of the screen with a mic-reactive waveform.
 
-Requisito crítico: a janela NUNCA pode receber foco nem cliques. O injetor escreve na
-janela em primeiro plano, então um HUD que ativasse roubaria o alvo do texto. Daí
+Critical requirement: the window can NEVER receive focus or clicks. The injector writes to the
+foreground window, so a HUD that activated would steal the target of the text. Hence
 WA_ShowWithoutActivating + WS_EX_NOACTIVATE/TRANSPARENT/TOOLWINDOW.
 
-Estados: "recording" (barras reagem ao áudio) → "processing" (onda correndo) → "idle" (fade out).
+States: "recording" (bars react to audio) → "processing" (running wave) → "idle" (fade out).
 """
 
 from __future__ import annotations
@@ -38,7 +38,7 @@ _PROC = QColor(96, 165, 250, 235)
 
 
 def _norm_level(rms: float) -> float:
-    """RMS linear → 0..1 em escala de dB (o ouvido é logarítmico; linear mal se move)."""
+    """Linear RMS → 0..1 on a dB scale (hearing is logarithmic; linear barely moves)."""
     if rms <= 1e-6:
         return 0.0
     db = 20.0 * math.log10(rms)
@@ -55,16 +55,16 @@ class RecordingHud(QWidget):
         self.setWindowFlags(
             Qt.WindowType.FramelessWindowHint
             | Qt.WindowType.WindowStaysOnTopHint
-            | Qt.WindowType.Tool  # fora da barra de tarefas e do Alt+Tab
+            | Qt.WindowType.Tool  # outside the taskbar and Alt+Tab
             | Qt.WindowType.WindowDoesNotAcceptFocus
-            | Qt.WindowType.WindowTransparentForInput  # cliques atravessam
+            | Qt.WindowType.WindowTransparentForInput  # clicks pass through
         )
         self.setAttribute(Qt.WidgetAttribute.WA_TranslucentBackground)
         self.setAttribute(Qt.WidgetAttribute.WA_ShowWithoutActivating)
         self.resize(PILL_W, PILL_H)
 
         self._state = "idle"
-        self._raw = 0.0  # último RMS bruto (escrito pelo slot, lido pelo timer)
+        self._raw = 0.0  # last raw RMS (written by the slot, read by the timer)
         self._smooth = 0.0
         self._phase = 0.0
         self._hist: deque[float] = deque([0.0] * BARS, maxlen=BARS)
@@ -81,7 +81,7 @@ class RecordingHud(QWidget):
         self._level_sig.connect(self._on_level)
         self._state_sig.connect(self._on_state)
 
-    # --- API thread-safe (chamada das threads de áudio e do PTT) ---
+    # --- thread-safe API (called from the audio and PTT threads) ---
 
     def push_level(self, rms: float) -> None:
         self._level_sig.emit(rms)
@@ -89,7 +89,7 @@ class RecordingHud(QWidget):
     def set_state(self, state: str) -> None:
         self._state_sig.emit(state)
 
-    # --- slots (thread da GUI) ---
+    # --- slots (GUI thread) ---
 
     def _on_level(self, rms: float) -> None:
         self._raw = rms
@@ -105,7 +105,7 @@ class RecordingHud(QWidget):
             self._fade.stop()
             self.setWindowOpacity(1.0)
             self.show()
-            self._harden_window()  # depois do show: o HWND já existe
+            self._harden_window()  # after show: the HWND already exists
             self._timer.start()
         elif state == "processing":
             self.show()
@@ -122,7 +122,7 @@ class RecordingHud(QWidget):
             self.hide()
             self._raw = 0.0
 
-    # --- janela ---
+    # --- window ---
 
     def _reposition(self) -> None:
         screen = QGuiApplication.screenAt(QCursor.pos()) or QGuiApplication.primaryScreen()
@@ -132,7 +132,7 @@ class RecordingHud(QWidget):
         self.move(QPoint(x, y))
 
     def _harden_window(self) -> None:
-        """Garante no nível do Win32 que a janela não ativa nem recebe cliques."""
+        """Ensures at the Win32 level that the window neither activates nor receives clicks."""
         try:
             import win32con
             import win32gui
@@ -147,28 +147,28 @@ class RecordingHud(QWidget):
                 | win32con.WS_EX_TRANSPARENT
                 | win32con.WS_EX_TOOLWINDOW,
             )
-        except Exception:  # noqa: BLE001 - HUD é cosmético; nunca derrubar o ditado
+        except Exception:  # noqa: BLE001 - HUD is cosmetic; never bring down the dictation
             pass
 
-    # --- animação e pintura ---
+    # --- animation and painting ---
 
     def _tick(self) -> None:
         if self._state == "recording":
             target = _norm_level(self._raw)
-            # attack rápido, release lento: a barra "salta" na voz e desce suave
+            # fast attack, slow release: the bar "jumps" on the voice and descends smoothly
             k = 0.55 if target > self._smooth else 0.18
             self._smooth += (target - self._smooth) * k
             self._hist.append(self._smooth)
         elif self._state == "processing":
             self._phase += 0.28
-            self._hist.append(0.0)  # o valor não importa; a pintura usa a fase
+            self._hist.append(0.0)  # the value doesn't matter; the painting uses the phase
         self.update()
 
     def paintEvent(self, event) -> None:  # noqa: ANN001, N802
         p = QPainter(self)
         p.setRenderHint(QPainter.RenderHint.Antialiasing)
 
-        # pílula de fundo
+        # background pill
         path = QPainterPath()
         r = self.height() / 2
         path.addRoundedRect(0, 0, self.width(), self.height(), r, r)
@@ -187,11 +187,11 @@ class RecordingHud(QWidget):
 
         for i, lvl in enumerate(self._hist):
             if self._state == "processing":
-                # onda correndo: senoide com defasagem por barra
+                # running wave: sine with per-bar phase offset
                 wave = 0.5 + 0.5 * math.sin(self._phase - i * 0.38)
                 h = min_h + wave * (max_h * 0.42)
             else:
-                # leve envelope nas pontas, para a onda "morrer" nas bordas
+                # slight envelope at the tips, so the wave "dies" at the edges
                 edge = math.sin(math.pi * (i + 0.5) / BARS) ** 0.5
                 h = min_h + lvl * max_h * edge
             bar = QPainterPath()

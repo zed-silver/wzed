@@ -1,10 +1,10 @@
-"""Fase 0, item 3: smoke test das técnicas de injeção de texto.
+"""Phase 0, item 3: smoke test of the text injection techniques.
 
-Abre um Notepad próprio, injeta uma frase com acentos por cada técnica
-(clipboard-paste e SendInput Unicode), lê de volta via Ctrl+A/Ctrl+C e compara.
-Fecha o Notepad sem salvar. Roda em ~5 s; NÃO tocar no teclado durante o teste.
+Opens its own Notepad, injects an accented sentence with each technique
+(clipboard-paste and SendInput Unicode), reads it back via Ctrl+A/Ctrl+C and compares.
+Closes Notepad without saving. Runs in ~5 s; do NOT touch the keyboard during the test.
 
-Uso: uv run python scripts/test_inject.py
+Usage: uv run python scripts/test_inject.py
 """
 
 from __future__ import annotations
@@ -22,7 +22,7 @@ import win32process
 
 AMOSTRA = "Olá, wzed! Ação e coração: pão, çã, é, 123 €."
 
-# ---------- SendInput (estruturas) ----------
+# ---------- SendInput (structs) ----------
 
 ULONG_PTR = ctypes.POINTER(ctypes.c_ulong)
 
@@ -38,7 +38,7 @@ class KEYBDINPUT(ctypes.Structure):
 
 
 class MOUSEINPUT(ctypes.Structure):
-    """Membro maior da união INPUT; sem ele o cbSize sai errado em x64 e SendInput retorna 0."""
+    """Largest member of the INPUT union; without it cbSize comes out wrong on x64 and SendInput returns 0."""
 
     _fields_ = [
         ("dx", wintypes.LONG),
@@ -106,7 +106,7 @@ def _clip_set(text: str) -> None:
         win32clipboard.CloseClipboard()
 
 
-# ---------- alvo (Notepad próprio) ----------
+# ---------- target (our own Notepad) ----------
 
 def _proc_name(pid: int) -> str:
     try:
@@ -122,10 +122,10 @@ def _proc_name(pid: int) -> str:
 
 
 def _find_window_of_process(name: str, timeout: float = 6.0) -> int:
-    """Acha a janela visível de um processo pelo NOME do executável.
+    """Finds a process's visible window by the executable NAME.
 
-    (O notepad.exe do Win11 faz handoff para o app da Store: o PID do launcher
-    não é o PID da janela; buscar por nome cobre os dois.)
+    (Win11's notepad.exe hands off to the Store app: the launcher's PID
+    is not the window's PID; searching by name covers both.)
     """
     hwnd_found = 0
 
@@ -143,7 +143,7 @@ def _find_window_of_process(name: str, timeout: float = 6.0) -> int:
     while time.time() < deadline and not hwnd_found:
         try:
             win32gui.EnumWindows(cb, None)
-        except Exception:  # EnumWindows lança quando o callback retorna False
+        except Exception:  # EnumWindows raises when the callback returns False
             pass
         if not hwnd_found:
             time.sleep(0.2)
@@ -151,9 +151,9 @@ def _find_window_of_process(name: str, timeout: float = 6.0) -> int:
 
 
 def _focus(hwnd: int) -> None:
-    """Foca a janela e CONFIRMA o foco; nunca injetar às cegas (iria parar na janela do usuário)."""
+    """Focuses the window and CONFIRMS focus; never inject blindly (it would land in the user's window)."""
     win32gui.ShowWindow(hwnd, win32con.SW_RESTORE)
-    # toque de Alt destrava o SetForegroundWindow de processos em background
+    # an Alt tap unlocks SetForegroundWindow for background processes
     win32api.keybd_event(win32con.VK_MENU, 0, 0, 0)
     win32api.keybd_event(win32con.VK_MENU, 0, win32con.KEYEVENTF_KEYUP, 0)
     try:
@@ -162,7 +162,7 @@ def _focus(hwnd: int) -> None:
         pass
     time.sleep(0.2)
     if win32gui.GetForegroundWindow() != hwnd:
-        # plano B: AttachThreadInput ao thread dono do foreground atual
+        # plan B: AttachThreadInput to the thread that owns the current foreground
         cur = win32api.GetCurrentThreadId()
         fg = win32gui.GetForegroundWindow()
         fg_thread = win32process.GetWindowThreadProcessId(fg)[0] if fg else 0
@@ -215,17 +215,17 @@ def main() -> None:
 
     resultados = {}
     try:
-        # Técnica 1: clipboard + Ctrl+V
+        # Technique 1: clipboard + Ctrl+V
         _focus(hwnd)
         clip_antes = _clip_get()
         _clip_set(AMOSTRA)
         _send_vk_combo(win32con.VK_CONTROL, ord("V"))
-        time.sleep(0.4)  # delay antes de restaurar (a race documentada)
+        time.sleep(0.4)  # delay before restoring (the documented race)
         lido = _read_back()
         resultados["clipboard_paste"] = "OK" if lido == AMOSTRA else f"DIVERGIU: {lido!r}"
         _clear_field()
 
-        # Técnica 2: SendInput Unicode
+        # Technique 2: SendInput Unicode
         _focus(hwnd)
         t0 = time.perf_counter()
         _send_unicode(AMOSTRA)
@@ -238,7 +238,7 @@ def main() -> None:
         )
 
         if clip_antes is not None:
-            _clip_set(clip_antes)  # restaura o clipboard do usuário
+            _clip_set(clip_antes)  # restore the user's clipboard
     finally:
         proc.kill()
 

@@ -1,6 +1,6 @@
-"""Gera assets/wzed.ico (microfone branco sobre disco azul) em vários tamanhos.
+"""Generates assets/wzed.ico (white microphone over a blue disc) in several sizes.
 
-Uso: uv run python scripts/make_icon.py
+Usage: uv run python scripts/make_icon.py
 """
 
 from __future__ import annotations
@@ -21,20 +21,20 @@ def _draw(size: int) -> QPixmap:
     p = QPainter(pm)
     p.setRenderHint(QPainter.RenderHint.Antialiasing)
     s = size
-    # disco de fundo (gradiente azul-petróleo)
+    # background disc (petrol-blue gradient)
     grad = QLinearGradient(0, 0, 0, s)
     grad.setColorAt(0, QColor("#2f6f8f"))
     grad.setColorAt(1, QColor("#16384a"))
     p.setBrush(QBrush(grad))
     p.setPen(Qt.PenStyle.NoPen)
     p.drawEllipse(QRectF(s * 0.04, s * 0.04, s * 0.92, s * 0.92))
-    # microfone branco
+    # white microphone
     p.setBrush(QColor("#ffffff"))
     cap_w, cap_h = s * 0.30, s * 0.46
     cap_x = (s - cap_w) / 2
     cap_y = s * 0.20
     p.drawRoundedRect(QRectF(cap_x, cap_y, cap_w, cap_h), cap_w / 2, cap_w / 2)
-    # arco + haste
+    # arc + stem
     pen = p.pen()
     pen.setColor(QColor("#ffffff"))
     pen.setWidthF(max(1.5, s * 0.045))
@@ -55,11 +55,11 @@ def main() -> None:
     OUT.parent.mkdir(parents=True, exist_ok=True)
     sizes = [16, 24, 32, 48, 64, 128, 256]
     imgs = [_draw(s).toImage() for s in sizes]
-    # QPixmap.save não gera .ico multi-size; usa o writer do Qt com todos os tamanhos
+    # QPixmap.save does not produce a multi-size .ico; use Qt's writer with all sizes
     from PySide6.QtGui import QImageWriter
     from PySide6.QtCore import QBuffer, QByteArray
 
-    # Qt não escreve .ico nativamente em todas as builds; grava PNG 256 e converte via Pillow
+    # Qt does not write .ico natively on all builds; write a 256 PNG and convert via Pillow
     try:
         from PIL import Image
         import io
@@ -73,7 +73,7 @@ def main() -> None:
             pil_imgs.append(Image.open(io.BytesIO(bytes(ba))).convert("RGBA"))
         pil_imgs[-1].save(OUT, format="ICO", sizes=[(s, s) for s in sizes])
     except ImportError:
-        # sem Pillow: grava um PNG 256 e renomeia (o Windows aceita PNG em .ico moderno)
+        # without Pillow: write a 256 PNG and rename it (Windows accepts PNG in a modern .ico)
         _draw(256).save(str(OUT).replace(".ico", ".png"), "PNG")
         raise SystemExit("Pillow ausente: gerado .png; instale pillow p/ .ico multi-size")
     print(f"ícone gerado: {OUT}")

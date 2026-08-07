@@ -1,9 +1,9 @@
-"""Fase 0, item 2: A/B de engines STT (Parakeet-TDT-0.6B-v3 vs faster-whisper turbo int8).
+"""Phase 0, item 2: A/B of STT engines (Parakeet-TDT-0.6B-v3 vs faster-whisper turbo int8).
 
-Mede latência por frase (pós-carga, modelo residente) e WER contra bench/refs.json.
-Uso:
+Measures per-sentence latency (post-load, model resident) and WER against bench/refs.json.
+Usage:
     uv run python scripts/bench_stt.py [--engine parakeet|fwhisper|both] [--device cuda|cpu]
-Saída: tabela no stdout + bench/results.json
+Output: table on stdout + bench/results.json
 """
 
 from __future__ import annotations
@@ -22,7 +22,7 @@ RESULTS = ROOT / "bench" / "results.json"
 
 
 def _setup_cuda_dlls() -> None:
-    """Expõe TODAS as DLLs dos pacotes pip nvidia-* e usa o preload do onnxruntime."""
+    """Exposes ALL DLLs from the nvidia-* pip packages and uses onnxruntime's preload."""
     import importlib.util
     import os
 
@@ -33,7 +33,7 @@ def _setup_cuda_dlls() -> None:
                 if bin_dir.is_dir():
                     os.add_dll_directory(str(bin_dir))
                     os.environ["PATH"] = str(bin_dir) + os.pathsep + os.environ["PATH"]
-    try:  # onnxruntime >= 1.21 carrega as DLLs CUDA dos pacotes pip sozinho
+    try:  # onnxruntime >= 1.21 loads the CUDA DLLs from the pip packages on its own
         import onnxruntime as ort
 
         ort.preload_dlls()
@@ -42,7 +42,7 @@ def _setup_cuda_dlls() -> None:
 
 
 def _norm(text: str) -> str:
-    """Normalização p/ WER: minúsculas, sem pontuação, sem acentos, espaços únicos."""
+    """Normalization for WER: lowercase, no punctuation, no accents, single spaces."""
     text = unicodedata.normalize("NFD", text.lower())
     text = "".join(c for c in text if unicodedata.category(c) != "Mn")
     text = re.sub(r"[^a-z0-9 ]+", " ", text)
@@ -60,7 +60,7 @@ def bench_parakeet(files: list[Path], refs: dict, device: str) -> dict:
     t0 = time.perf_counter()
     model = onnx_asr.load_model("nemo-parakeet-tdt-0.6b-v3", providers=providers)
     load_s = time.perf_counter() - t0
-    # warmup (descarta o primeiro utterance p/ medir regime quente)
+    # warmup (discards the first utterance to measure the warm regime)
     model.recognize(str(files[0]))
     rows = []
     for f in files:
@@ -114,9 +114,9 @@ def main() -> None:
     ap = argparse.ArgumentParser()
     ap.add_argument("--engine", choices=["parakeet", "fwhisper", "both"], default="both")
     ap.add_argument("--device", choices=["cuda", "cpu"], default="cuda")
-    ap.add_argument("--audio-dir", default=None, help="pasta com os .wav (default: bench/audio)")
-    ap.add_argument("--refs", default=None, help="json de referências (default: bench/refs.json)")
-    ap.add_argument("--out", default=None, help="json de resultados")
+    ap.add_argument("--audio-dir", default=None, help="folder with the .wav files (default: bench/audio)")
+    ap.add_argument("--refs", default=None, help="references json (default: bench/refs.json)")
+    ap.add_argument("--out", default=None, help="results json")
     args = ap.parse_args()
 
     audio_dir = Path(args.audio_dir) if args.audio_dir else AUDIO_DIR
@@ -150,7 +150,7 @@ def main() -> None:
                     f"  {row['id']} {cat:<12} {row['latency_ms']:>7}ms "
                     f"wer={row['wer']:<6} {row['text'][:60]}"
                 )
-        except Exception as e:  # noqa: BLE001 - bench deve reportar, não morrer
+        except Exception as e:  # noqa: BLE001 - bench should report, not die
             print(f"\n== {name} FALHOU: {type(e).__name__}: {e}")
             results.append({"engine": name, "error": f"{type(e).__name__}: {e}"})
 
@@ -160,7 +160,7 @@ def main() -> None:
 
 
 def _compare(results: list[dict], refs: dict) -> None:
-    """Veredito: WER por categoria (onde o sotaque pt-BR vs modelo pt-PT aparece)."""
+    """Verdict: WER by category (where the pt-BR accent vs pt-PT model shows up)."""
     ok = [r for r in results if "rows" in r]
     if len(ok) < 2:
         return
