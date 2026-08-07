@@ -1,0 +1,67 @@
+﻿{
+    "pt10":  {
+                 "lang":  "pt",
+                 "voice":  "Microsoft Maria",
+                 "text":  "Nova linha. O segundo parágrafo começa aqui, com iniciais maiúsculas."
+             },
+    "pt02":  {
+                 "lang":  "pt",
+                 "voice":  "Microsoft Maria",
+                 "text":  "A reunião foi remarcada para quinta-feira às três e meia da tarde."
+             },
+    "pt01":  {
+                 "lang":  "pt",
+                 "voice":  "Microsoft Maria",
+                 "text":  "Amanhã de manhã vou correr na praia da Rocha com o pessoal do clube."
+             },
+    "pt03":  {
+                 "lang":  "pt",
+                 "voice":  "Microsoft Maria",
+                 "text":  "Você pode me enviar o relatório de vendas do segundo trimestre?"
+             },
+    "pt04":  {
+                 "lang":  "pt",
+                 "voice":  "Microsoft Maria",
+                 "text":  "O coração da questão é a proteção dos dados pessoais dos usuários."
+             },
+    "pt05":  {
+                 "lang":  "pt",
+                 "voice":  "Microsoft Maria",
+                 "text":  "Choveu muito em Portimão, mas o fim de semana promete sol e calor."
+             },
+    "en02":  {
+                 "lang":  "en",
+                 "voice":  "Microsoft David",
+                 "text":  "Please schedule the meeting for Thursday at half past three."
+             },
+    "pt06":  {
+                 "lang":  "pt",
+                 "voice":  "Microsoft Daniel",
+                 "text":  "Preciso agendar uma consulta com o doutor Magalhães na próxima semana."
+             },
+    "en03":  {
+                 "lang":  "en",
+                 "voice":  "Microsoft Zira",
+                 "text":  "Latency below three hundred milliseconds is the target for this application."
+             },
+    "en01":  {
+                 "lang":  "en",
+                 "voice":  "Microsoft Zira",
+                 "text":  "The quarterly report shows a twelve percent increase in active users."
+             },
+    "pt07":  {
+                 "lang":  "pt",
+                 "voice":  "Microsoft Daniel",
+                 "text":  "A aplicação transforma voz em texto com pontuação automática e baixa latência."
+             },
+    "pt09":  {
+                 "lang":  "pt",
+                 "voice":  "Microsoft Daniel",
+                 "text":  "Hum, deixa eu pensar, é, acho que a gente podia, tipo, adiar essa decisão."
+             },
+    "pt08":  {
+                 "lang":  "pt",
+                 "voice":  "Microsoft Daniel",
+                 "text":  "São vinte e três euros e cinquenta cêntimos, com desconto de dez por cento."
+             }
+}

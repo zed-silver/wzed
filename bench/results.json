@@ -1,0 +1,184 @@
+[
+  {
+    "engine": "parakeet-tdt-0.6b-v3",
+    "device": "cuda",
+    "load_s": 3.2,
+    "rows": [
+      {
+        "id": "en01",
+        "latency_ms": 41.3,
+        "text": "The quarterly report shows a 12% increase in active users.",
+        "wer": 0.182
+      },
+      {
+        "id": "en02",
+        "latency_ms": 151.4,
+        "text": "Please schedule the meeting for Thursday at half past three.",
+        "wer": 0.0
+      },
+      {
+        "id": "en03",
+        "latency_ms": 126.7,
+        "text": "Latency below 300 milliseconds is the target for this application.",
+        "wer": 0.182
+      },
+      {
+        "id": "pt01",
+        "latency_ms": 157.9,
+        "text": "Amanhã de manhã, vou correr na Praia da Rocha com o pessoal do clube.",
+        "wer": 0.0
+      },
+      {
+        "id": "pt02",
+        "latency_ms": 130.8,
+        "text": "A reunião foi remarcada para quinta-feira às três e meia da tarde.",
+        "wer": 0.0
+      },
+      {
+        "id": "pt03",
+        "latency_ms": 135.9,
+        "text": "Você pode me enviar o relatório de vendas do segundo trimestre.",
+        "wer": 0.0
+      },
+      {
+        "id": "pt04",
+        "latency_ms": 132.7,
+        "text": "O coração da questão é a proteção dos dados pessoais dos usuários.",
+        "wer": 0.0
+      },
+      {
+        "id": "pt05",
+        "latency_ms": 139.4,
+        "text": "Choveu muito em Portimal, mas o fim de semana promete sol e calor.",
+        "wer": 0.077
+      },
+      {
+        "id": "pt06",
+        "latency_ms": 127.5,
+        "text": "Preciso agendar uma consulta com o doutor Magalhães na próxima semana.",
+        "wer": 0.0
+      },
+      {
+        "id": "pt07",
+        "latency_ms": 128.9,
+        "text": "A aplicação transforma a voz em texto com pontuação automática e baixa latência.",
+        "wer": 0.083
+      },
+      {
+        "id": "pt08",
+        "latency_ms": 146.0,
+        "text": "São 23,50 cêntimos, com desconto de 10%.",
+        "wer": 0.643
+      },
+      {
+        "id": "pt09",
+        "latency_ms": 137.7,
+        "text": "1. Deixa eu pensar, é, acho que a gente podia, tipo, adiar essa decisão.",
+        "wer": 0.071
+      },
+      {
+        "id": "pt10",
+        "latency_ms": 147.7,
+        "text": "Nova linha. O segundo parágrafo começa aqui, com iniciais maiúsculas.",
+        "wer": 0.0
+      }
+    ],
+    "summary": {
+      "wer_pt": 0.087,
+      "wer_en": 0.121,
+      "latency_ms_median": 135.9,
+      "latency_ms_max": 157.9
+    }
+  },
+  {
+    "engine": "faster-whisper large-v3-turbo int8",
+    "device": "cuda",
+    "load_s": 3.9,
+    "rows": [
+      {
+        "id": "en01",
+        "latency_ms": 248.2,
+        "text": "The quarterly report shows a 12% increase in active users.",
+        "wer": 0.182
+      },
+      {
+        "id": "en02",
+        "latency_ms": 229.5,
+        "text": "Please schedule the meeting for Thursday at half past three.",
+        "wer": 0.0
+      },
+      {
+        "id": "en03",
+        "latency_ms": 225.6,
+        "text": "Latency below 300 milliseconds is the target for this application.",
+        "wer": 0.182
+      },
+      {
+        "id": "pt01",
+        "latency_ms": 251.4,
+        "text": "Amanhã de manhã vou correr na Praia da Rocha com o pessoal do clube.",
+        "wer": 0.0
+      },
+      {
+        "id": "pt02",
+        "latency_ms": 241.4,
+        "text": "A reunião foi remarcada para quinta-feira às três e meia da tarde.",
+        "wer": 0.0
+      },
+      {
+        "id": "pt03",
+        "latency_ms": 235.5,
+        "text": "Você pode me enviar o relatório de vendas do segundo trimestre.",
+        "wer": 0.0
+      },
+      {
+        "id": "pt04",
+        "latency_ms": 240.6,
+        "text": "O coração da questão é a proteção dos dados pessoais dos usuários.",
+        "wer": 0.0
+      },
+      {
+        "id": "pt05",
+        "latency_ms": 243.3,
+        "text": "Choveu muito em Portimau, mas o fim de semana promete sol e calor.",
+        "wer": 0.077
+      },
+      {
+        "id": "pt06",
+        "latency_ms": 237.1,
+        "text": "Preciso agendar uma consulta com o Dr. Magalhães na próxima semana.",
+        "wer": 0.091
+      },
+      {
+        "id": "pt07",
+        "latency_ms": 250.6,
+        "text": "A aplicação transforma a voz em texto com pontuação automática e baixa latência.",
+        "wer": 0.083
+      },
+      {
+        "id": "pt08",
+        "latency_ms": 229.5,
+        "text": "São 23,50 euros, com desconto de 10%.",
+        "wer": 0.643
+      },
+      {
+        "id": "pt09",
+        "latency_ms": 252.0,
+        "text": "Hum, deixa eu pensar, é, acho que a gente podia, tipo, adiar essa decisão.",
+        "wer": 0.0
+      },
+      {
+        "id": "pt10",
+        "latency_ms": 254.4,
+        "text": "Nova linha. O segundo parágrafo começa aqui, com iniciais maiúsculas.",
+        "wer": 0.0
+      }
+    ],
+    "summary": {
+      "wer_pt": 0.089,
+      "wer_en": 0.121,
+      "latency_ms_median": 241.4,
+      "latency_ms_max": 254.4
+    }
+  }
+]

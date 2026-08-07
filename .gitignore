@@ -1,0 +1,7 @@
+.venv/
+__pycache__/
+*.pyc
+models/
+bench/audio/*.wav
+boot_test.log
+.pytest_cache/
