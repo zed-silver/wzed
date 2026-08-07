@@ -63,19 +63,36 @@ The push-to-talk hook runs on its own thread; the recording HUD is a click-throu
 
 ## Installation
 
-Install as a real app (Start Menu entry + starts with Windows):
+Clone the repository, then **double-click `install.bat`** (or right-click → *Run with PowerShell* on `install.ps1`):
 
 ```powershell
-uv sync --extra dev --extra api          # installs the package into .venv
+git clone https://github.com/zed-silver/wzed.git
+cd wzed
+.\install.bat
+```
+
+The installer is idempotent — run it again anytime to update. It:
+
+1. installs [**uv**](https://docs.astral.sh/uv/) if it is missing (via `winget`),
+2. creates the `.venv` and installs every dependency,
+3. generates the tray icon, and
+4. adds the Start Menu + autostart shortcuts and launches wzed.
+
+> First run downloads the STT backend (CUDA/PyTorch) and can take a few minutes; the very first launch then loads the model (~15 s) before the hotkey responds.
+
+Flags: `-NoAutostart` (don't start with Windows), `-NoStart` (don't launch at the end). Remove everything with **`uninstall.bat`** (or `install.ps1 -Uninstall`); the repo and the `.venv` are kept.
+
+> The shortcuts point at `.venv\Scripts\pythonw.exe -m wzed` — not a bundled `.exe`. `pythonw.exe` is **signed by the Python Software Foundation**, which avoids the antivirus reputation blocks that unsigned installers trigger. That is also why wzed ships **no `.exe` installer**.
+
+### Manual install (advanced)
+
+If you'd rather run the steps yourself:
+
+```powershell
+uv sync --extra api                      # installs the package into .venv (the dev group comes by default)
 uv run python scripts\make_icon.py       # generates the tray icon
 powershell -ExecutionPolicy Bypass -File scripts\install.ps1   # Start Menu + autostart shortcuts
 ```
-
-After that, launch **wzed** from the Start Menu (search "wzed"); it also starts on every login and lives in the system tray.
-
-Remove the shortcuts with `scripts\install.ps1 -Uninstall` (keep it installed but disable autostart with `-NoAutostart`).
-
-> The shortcuts point at `.venv\Scripts\pythonw.exe -m wzed` — not a bundled `.exe`. `pythonw.exe` is **signed by the Python Software Foundation**, which avoids antivirus reputation blocks.
 
 ### Run from source (dev)
 
@@ -148,6 +165,9 @@ Every dictation tool with a global hotkey installs a keyboard hook, which looks 
 ## Project layout
 
 ```
+install.bat         # one-click installer (double-click)
+uninstall.bat       # removes the shortcuts
+install.ps1         # installer logic (uv + venv + icon + shortcuts)
 src/wzed/
   app.py            # orchestrator + system tray
   audio/capture.py  # microphone capture
@@ -164,7 +184,7 @@ tests/              # unit tests
 ## Development
 
 ```powershell
-uv sync --extra dev --extra api
+uv sync --extra api
 uv run pytest                                                    # unit tests
 uv run python scripts\bench_stt.py --engine both --device cuda   # A/B benchmark
 uv run python scripts\test_hud.py                                # HUD smoke test
