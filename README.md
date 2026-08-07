@@ -1,6 +1,6 @@
 <div align="center">
 
-<img src="assets/wzed_v1.png" alt="wzed logo" width="128" height="128" />
+<img src="assets/wzed_v1.1.png" alt="wzed logo" width="128" height="128" />
 
 # wzed
 
