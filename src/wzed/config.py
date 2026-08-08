@@ -40,7 +40,9 @@ class AudioCfg(BaseModel):
     sample_rate: int = 16000
     device: str | None = None  # None = system default
     vad_silence_ms: int = 300  # end-of-speech window in continuous mode
-    max_utterance_s: int = 60
+    # teto de segurança contra tecla PTT travada, NÃO limite de ditado.
+    # 15 min: nenhum ditado intencional chega perto; ~57 MB de buffer no pior caso.
+    max_utterance_s: int = 900
 
     @field_validator("device", mode="before")
     @classmethod

@@ -106,7 +106,15 @@ class Recorder:
             )
             self._chunks = []
         if len(audio) > self.max_samples:
-            audio = audio[-self.max_samples :]
+            # teto de segurança (tecla PTT presa). Mantém o INÍCIO da fala —
+            # descartar o começo em silêncio é o que fazia sumir o texto ditado.
+            log.warning(
+                "fala de %.0fs excedeu o teto de %.0fs (tecla PTT presa?); "
+                "mantendo o início e descartando o excedente",
+                len(audio) / self.sample_rate,
+                self.max_samples / self.sample_rate,
+            )
+            audio = audio[: self.max_samples]
         self._warn_if_silent(audio)
         return audio
 
