@@ -1,3 +1,7 @@
+![WZed — local voice dictation for Windows](assets/wzed-hero.jpg)
+
+<p align="center"><strong>English</strong> · <a href="README.pt-BR.md">Português (Brasil)</a> · <a href="README.es.md">Español</a></p>
+
 <div align="center">
 
 <img src="assets/wzed_v1.1.png" alt="wzed logo" width="128" height="128" />
@@ -97,7 +101,7 @@ powershell -ExecutionPolicy Bypass -File scripts\install.ps1   # Start Menu + au
 ### Run from source (dev)
 
 ```powershell
-uv run wzed-console        # with a console and logs in the terminal
+uv run python -m wzed      # with a console and logs in the terminal
 ```
 
 ## Usage
