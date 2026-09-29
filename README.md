@@ -144,7 +144,7 @@ wrong -> right
 BrandName
 ```
 
-Reload it from the tray menu ("Reload dictionary") without restarting.
+Open it from the tray menu ("Abrir dicionário"; created with a template on first use). Just save the file: changes apply to the next dictation, no restart. Rules match whole words/phrases only, case-insensitively, and longer phrases win over shorter ones. Each history entry keeps both the raw STT text and the final text, so you can see what the dictionary changed.
 
 Dictation history is kept in a local SQLite database (full-text searchable); logs are in `%APPDATA%\wzed\wzed.log`.
 

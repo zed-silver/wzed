@@ -49,6 +49,78 @@ def test_rules_hesitacao_e_dicionario(tmp_path, monkeypatch):
     assert r.apply("texto  com   espaços .") == "texto com espaços."
 
 
+def _rules(tmp_path, text):
+    from wzed.postproc.rules import Rules
+
+    dict_file = tmp_path / "dictionary.txt"
+    dict_file.write_text(text, encoding="utf-8")
+    return Rules(dict_file), dict_file
+
+
+def test_rules_limite_de_palavra(tmp_path):
+    """A rule must never corrupt words that merely contain the term."""
+    r, _ = _rules(tmp_path, "ia -> IA\nconfi -> Comfy\n")
+    assert r.apply("a ia do dia no iate") == "a IA do dia no iate"
+    assert r.apply("confiança no confi") == "confiança no Comfy"
+    assert r.apply("confi, confi.") == "Comfy, Comfy."
+
+
+def test_rules_frase_longa_vence_e_sem_encadeamento(tmp_path):
+    # the shorter rule comes first in the file on purpose: file order must not matter
+    r, _ = _rules(
+        tmp_path, "confi -> Comfy\nconfi wide -> ComfyUI\nComfyUI -> NUNCA\n"
+    )
+    assert r.apply("abre o confi wide agora") == "abre o ComfyUI agora"
+    assert r.apply("abre o confi   wide") == "abre o ComfyUI"  # STT whitespace varies
+    assert r.apply("só o confi") == "só o Comfy"
+
+
+def test_rules_maiusculas_minusculas(tmp_path):
+    r, _ = _rules(tmp_path, "confiwide -> ComfyUI\nSupabase\nC++\n")
+    assert r.apply("Confiwide e CONFIWIDE e confiwide") == "ComfyUI e ComfyUI e ComfyUI"
+    assert r.apply("o SUPABASE e o supabase") == "o Supabase e o Supabase"
+    assert r.apply("código em c++ hoje") == "código em C++ hoje"
+
+
+def test_rules_dicionario_vazio_ou_ausente(tmp_path):
+    from wzed.postproc.rules import Rules
+
+    r, _ = _rules(tmp_path, "# só comentários\n\n")
+    assert r.apply("texto intacto.") == "texto intacto."
+    assert Rules(tmp_path / "nao_existe.txt").apply("texto intacto.") == "texto intacto."
+
+
+def test_rules_nao_remove_verbo_e(tmp_path):
+    """Regression: the hesitation filter ate the verb "É" at the start of sentences."""
+    r, _ = _rules(tmp_path, "")
+    assert r.apply("É importante lembrar disso.") == "É importante lembrar disso."
+    assert r.apply("Éé, vamos lá.") == "vamos lá."
+
+
+def test_rules_recarrega_quando_arquivo_muda(tmp_path):
+    import os
+
+    r, dict_file = _rules(tmp_path, "confiwide -> ComfyUI\n")
+    assert r.apply("confiwide") == "ComfyUI"
+    dict_file.write_text("confiwide -> ComfyUI\nsupa base -> Supabase\n", encoding="utf-8")
+    st = dict_file.stat()  # force a distinct mtime (coarse filesystem clocks)
+    os.utime(dict_file, ns=(st.st_atime_ns, st.st_mtime_ns + 10**9))
+    assert r.apply("supa base") == "Supabase"
+    dict_file.unlink()
+    assert r.apply("confiwide") == "confiwide"  # file deleted: no rules
+
+
+def test_rules_ensure_dictionary_file(tmp_path):
+    from wzed.postproc.rules import Rules, ensure_dictionary_file
+
+    path = ensure_dictionary_file(tmp_path / "sub" / "dictionary.txt")
+    assert path.is_file()
+    assert Rules(path).apply("confiwide") == "confiwide"  # template is all comments
+    path.write_text("x -> y\n", encoding="utf-8")
+    ensure_dictionary_file(path)  # must not overwrite an existing dictionary
+    assert path.read_text(encoding="utf-8") == "x -> y\n"
+
+
 def test_history_fts(tmp_path):
     from wzed.history.store import HistoryStore
 

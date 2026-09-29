@@ -6,6 +6,7 @@ Run: uv run python -m wzed
 from __future__ import annotations
 
 import logging
+import os
 import sys
 import time
 
@@ -22,7 +23,7 @@ from wzed.audio.capture import Recorder
 from wzed.history.store import HistoryStore
 from wzed.hotkeys.manager import HotkeyManager
 from wzed.inject.injector import Injector, active_process_name
-from wzed.postproc.rules import Rules
+from wzed.postproc.rules import Rules, ensure_dictionary_file
 from wzed.stt.engines import create_engine
 from wzed.ui.hud import RecordingHud
 
@@ -62,6 +63,14 @@ def _wait_modifiers_released(timeout_s: float = 1.5) -> None:
         if not any(win32api.GetAsyncKeyState(vk) & 0x8000 for vk in _PTT_VKS):
             return
         time.sleep(0.02)
+
+
+def _open_dictionary() -> None:
+    """Opens dictionary.txt in the default editor (creates it with a template on first use)."""
+    try:
+        os.startfile(ensure_dictionary_file())  # noqa: S606 - local file we own
+    except Exception:  # noqa: BLE001 - a tray click must never take the app down
+        log.exception("falha ao abrir o dicionário")
 
 
 def _icon(color: str) -> QIcon:
@@ -123,9 +132,10 @@ class WzedApp:
         self._status_action.setEnabled(False)
         menu.addAction(self._status_action)
         menu.addSeparator()
-        recarregar = QAction("Recarregar dicionário")
-        recarregar.triggered.connect(self.rules.reload)
-        menu.addAction(recarregar)
+        # no "reload" item: Rules re-reads the file by mtime on every dictation
+        abrir_dict = QAction("Abrir dicionário")
+        abrir_dict.triggered.connect(_open_dictionary)
+        menu.addAction(abrir_dict)
         sair = QAction("Sair")
         sair.triggered.connect(self.qt.quit)
         menu.addAction(sair)

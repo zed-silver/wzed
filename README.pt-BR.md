@@ -160,7 +160,7 @@ errado -> correto
 NomeDaMarca
 ```
 
-Use **Recarregar dicionário** no menu da bandeja para aplicar as mudanças sem reiniciar.
+Abra pelo menu da bandeja em **Abrir dicionário** (na primeira vez ele é criado com um modelo). Basta salvar o arquivo: a mudança vale a partir do próximo ditado, sem reiniciar. As regras só casam palavras/frases inteiras, sem diferenciar maiúsculas, e frases mais longas vencem as mais curtas. O histórico guarda o texto bruto do STT e o texto final de cada ditado, para você ver o que o dicionário corrigiu.
 
 O histórico de ditados fica em um banco SQLite local pesquisável por texto completo. Os logs ficam
 em `%APPDATA%\wzed\wzed.log`.
