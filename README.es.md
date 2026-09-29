@@ -162,7 +162,7 @@ incorrecto -> correcto
 NombreDeMarca
 ```
 
-Ábrelo desde el menú de la bandeja con **Abrir dicionário** (la primera vez se crea con una plantilla). Basta con guardar el archivo: los cambios se aplican en el siguiente dictado, sin reiniciar. Las reglas solo coinciden con palabras/frases completas, sin distinguir mayúsculas, y las frases más largas ganan a las más cortas. El historial guarda el texto bruto del STT y el texto final de cada dictado, para ver qué corrigió el diccionario.
+Ábrelo desde el menú de la bandeja con **Abrir dicionário** (la primera vez se crea con una plantilla). Basta con guardar el archivo: los cambios se aplican en el siguiente dictado, sin reiniciar. Las reglas solo coinciden con palabras/frases completas, sin distinguir mayúsculas, y las frases más largas ganan a las más cortas. El historial guarda el texto bruto del STT y el texto final de cada dictado, para ver qué corrigió el diccionario. Con el motor faster-whisper, cada grafía correcta del diccionario también se pasa al modelo como *hotword*, así que tiende a acertar el término ya en la transcripción (Parakeet no tiene equivalente y lo ignora).
 
 El historial de dictados se almacena en una base SQLite local con búsqueda de texto completo. Los
 registros se guardan en `%APPDATA%\wzed\wzed.log`.

@@ -121,6 +121,38 @@ def test_rules_ensure_dictionary_file(tmp_path):
     assert path.read_text(encoding="utf-8") == "x -> y\n"
 
 
+def test_rules_hint_terms(tmp_path):
+    r, _ = _rules(tmp_path, "confiwide -> ComfyUI\nSupabase\ncomfy ui -> ComfyUI\nx ->\n")
+    assert r.hint_terms() == ["ComfyUI", "Supabase"]  # deduplicated, no empty values
+    from wzed.postproc.rules import Rules
+
+    assert Rules(tmp_path / "nao_existe.txt").hint_terms() == []
+
+
+def test_fwhisper_recebe_hotwords():
+    """The dictionary's correct terms reach faster-whisper as hotwords; none = None."""
+    from types import SimpleNamespace
+
+    import numpy as np
+
+    from wzed.stt.engines import FasterWhisperEngine
+
+    kwargs = {}
+
+    class FakeModel:
+        def transcribe(self, audio, **kw):
+            kwargs.update(kw)
+            return iter([SimpleNamespace(text=" abre o ComfyUI ")]), None
+
+    eng = FasterWhisperEngine.__new__(FasterWhisperEngine)  # skip loading the real model
+    eng._model = FakeModel()
+    audio = np.zeros(16000, dtype=np.float32)
+    assert eng.transcribe(audio, "pt", ["ComfyUI", "Supabase"]) == "abre o ComfyUI"
+    assert kwargs["hotwords"] == "ComfyUI, Supabase"
+    eng.transcribe(audio, "pt")
+    assert kwargs["hotwords"] is None
+
+
 def test_history_fts(tmp_path):
     from wzed.history.store import HistoryStore
 

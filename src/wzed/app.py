@@ -174,7 +174,9 @@ class WzedApp:
                 self._set_state("idle")
                 return
             t0 = time.perf_counter()
-            raw = self.stt.transcribe(audio, self.cfg.stt.language)
+            raw = self.stt.transcribe(
+                audio, self.cfg.stt.language, self.rules.hint_terms()
+            )
             final = self.rules.apply(raw)
             latency_ms = (time.perf_counter() - t0) * 1000
             app_name = active_process_name()

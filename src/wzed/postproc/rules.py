@@ -111,6 +111,12 @@ class Rules:
         if mtime != self._mtime:
             self.reload()
 
+    def hint_terms(self) -> list[str]:
+        """Correct spellings from the dictionary (deduplicated, file order), used to bias the
+        STT before it transcribes. Empty dictionary = no hints = unchanged STT behavior."""
+        self._reload_if_changed()
+        return list(dict.fromkeys(v for v in self._map.values() if v))
+
     def apply(self, text: str) -> str:
         self._reload_if_changed()
         text = text.strip()

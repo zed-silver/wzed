@@ -144,7 +144,7 @@ wrong -> right
 BrandName
 ```
 
-Open it from the tray menu ("Abrir dicionário"; created with a template on first use). Just save the file: changes apply to the next dictation, no restart. Rules match whole words/phrases only, case-insensitively, and longer phrases win over shorter ones. Each history entry keeps both the raw STT text and the final text, so you can see what the dictionary changed.
+Open it from the tray menu ("Abrir dicionário"; created with a template on first use). Just save the file: changes apply to the next dictation, no restart. Rules match whole words/phrases only, case-insensitively, and longer phrases win over shorter ones. Each history entry keeps both the raw STT text and the final text, so you can see what the dictionary changed. With the faster-whisper engine, every correct spelling in the dictionary is also passed to the model as a hotword, so it tends to get the term right at the source (Parakeet has no equivalent and ignores it).
 
 Dictation history is kept in a local SQLite database (full-text searchable); logs are in `%APPDATA%\wzed\wzed.log`.
 
